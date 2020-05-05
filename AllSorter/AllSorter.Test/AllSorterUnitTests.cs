@@ -73,6 +73,8 @@ namespace Anteaters
             VerifyCSharpFix(test, fixtest);
         }
 
+        
+
 
         protected override CodeFixProvider GetCSharpCodeFixProvider()
         {

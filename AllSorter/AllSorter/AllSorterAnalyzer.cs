@@ -1,20 +1,17 @@
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace AllSorter
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class AllSorterAnalyzer : DiagnosticAnalyzer
     {
-        public const string DiagnosticId = "AllSorter";
+        public const string DiagnosticId = "ClassSorter";
+        public const string MethodDiagnosticId = "MethodSorter";
 
         // You can change these strings in the Resources.resx file. If you do not want your analyzer to be localize-able, you can use regular strings for Title and MessageFormat.
         // See https://github.com/dotnet/roslyn/blob/master/docs/analyzers/Localizing%20Analyzers.md for more on localization

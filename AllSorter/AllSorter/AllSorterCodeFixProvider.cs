@@ -1,3 +1,9 @@
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -5,14 +11,6 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Rename;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Editing;
 
 namespace AllSorter
 {
@@ -23,7 +21,7 @@ namespace AllSorter
 
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            get { return ImmutableArray.Create(AllSorterAnalyzer.DiagnosticId); }
+            get { return ImmutableArray.Create(AllSorterAnalyzer.DiagnosticId, AllSorterAnalyzer.MethodDiagnosticId); }
         }
 
         public sealed override FixAllProvider GetFixAllProvider()
@@ -36,7 +34,7 @@ namespace AllSorter
         {
             //var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
-            foreach (Diagnostic diagnostic in context.Diagnostics.Where(d => FixableDiagnosticIds.Contains(d.Id)))
+            foreach (Diagnostic diagnostic in context.Diagnostics.Where(d => FixableDiagnosticIds.Contains(d.Id) && d.Id.Equals(AllSorterAnalyzer.DiagnosticId)))
             {
 
                 // Register a code action that will invoke the fix.
@@ -66,14 +64,17 @@ namespace AllSorter
                     ClassDeclarationSyntax aClass = classes[index];
                     ClassDeclarationSyntax aSortedClass = sortedClasses[index];
 
-                    /* Using aSortedClass directly in ReplaceNode would cause an error. See https://github.com/dotnet/roslyn/issues/37226 */
-                    ClassDeclarationSyntax copyOfSortedClass = SyntaxFactory.ClassDeclaration(attributeLists: aSortedClass.AttributeLists,
-                        modifiers: aSortedClass.Modifiers, identifier: aSortedClass.Identifier, typeParameterList: aSortedClass.TypeParameterList,
-                        baseList: aSortedClass.BaseList, constraintClauses: aSortedClass.ConstraintClauses, members: aSortedClass.Members)
-                        .WithLeadingTrivia(aSortedClass.GetLeadingTrivia())
-                        .WithTrailingTrivia(aSortedClass.GetTrailingTrivia());
+                    if (aClass.ToString() != aSortedClass.ToString())
+                    {
+                        /* Using aSortedClass directly in ReplaceNode would cause an error. See https://github.com/dotnet/roslyn/issues/37226 */
+                        ClassDeclarationSyntax copyOfSortedClass = SyntaxFactory.ClassDeclaration(attributeLists: aSortedClass.AttributeLists,
+                            modifiers: aSortedClass.Modifiers, identifier: aSortedClass.Identifier, typeParameterList: aSortedClass.TypeParameterList,
+                            baseList: aSortedClass.BaseList, constraintClauses: aSortedClass.ConstraintClauses, members: aSortedClass.Members)
+                            .WithLeadingTrivia(aSortedClass.GetLeadingTrivia())
+                            .WithTrailingTrivia(aSortedClass.GetTrailingTrivia());
 
-                    documentEditor.ReplaceNode(aClass, copyOfSortedClass);
+                        documentEditor.ReplaceNode(aClass, copyOfSortedClass);
+                    }
                 }
                 return documentEditor.GetChangedDocument();
             }
